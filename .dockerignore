@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.air.toml
+README.md
+
+# Directorios de compilación y datos
+volume/app/src/tmp
+volume/app/src/vendor
+volume/data
+
+# Archivos de entorno
+volume/app/src/.env

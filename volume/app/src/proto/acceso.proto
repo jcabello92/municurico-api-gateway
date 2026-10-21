@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package acceso;
+
+option go_package = "core-service/proto;proto";
+
+// AccesoService define los contratos gRPC para la autenticación, administración de sesiones y cuentas de usuario.
+service AccesoService {
+  rpc IniciarSesion (IniciarSesionRequest) returns (IniciarSesionResponse);
+  rpc CerrarSesion (CerrarSesionRequest) returns (CerrarSesionResponse);
+  rpc CerrarTodasLasSesiones (CerrarTodasLasSesionesRequest) returns (CerrarTodasLasSesionesResponse);
+  rpc ObtenerPerfil (ObtenerPerfilRequest) returns (ObtenerPerfilResponse);
+  rpc ActualizarContrasena (ActualizarContrasenaRequest) returns (ActualizarContrasenaResponse);
+  rpc RegistrarUsuario (RegistrarUsuarioRequest) returns (RegistrarUsuarioResponse);
+  rpc SolicitarRecuperacionContrasena (SolicitarRecuperacionContrasenaRequest) returns (SolicitarRecuperacionContrasenaResponse);
+  rpc RestablecerContrasena (RestablecerContrasenaRequest) returns (RestablecerContrasenaResponse);
+}
+
+// IniciarSesionRequest contiene las credenciales para autenticación con identificador único (run, pasaporte o correo).
+message IniciarSesionRequest {
+  optional string run = 1;
+  optional string pasaporte = 2;
+  optional string correo_electronico = 3;
+  string contrasena = 4;
+}
+
+// IniciarSesionResponse contiene el token JWT y los datos de la sesión activa creada.
+message IniciarSesionResponse {
+  string token = 1;
+  string token_type = 2;
+  int64 expires_in = 3;
+  SesionData sesion = 4;
+}
+
+// SesionData encapsula la información de sesión almacenada en caché.
+message SesionData {
+  SesionPersona persona = 1;
+  optional SesionMiembro miembro = 2;
+  SesionUsuario usuario = 3;
+  repeated SesionAplicacion aplicaciones = 4;
+}
+
+// SesionComuna describe la comuna asociada a la persona.
+message SesionComuna {
+  string id = 1;
+  string nombre = 2;
+  string provincia_id = 3;
+}
+
+// SesionPersona describe los datos personales asociados a la sesión.
+message SesionPersona {
+  string id = 1;
+  optional string run = 2;
+  optional string pasaporte = 3;
+  string nombre = 4;
+  optional string apellido_paterno = 5;
+  optional string apellido_materno = 6;
+  optional string genero = 7;
+  optional string fecha_nacimiento = 8;
+  optional SesionComuna comuna = 9;
+  optional string direccion = 10;
+  optional string telefono_fijo = 11;
+  optional string telefono_movil = 12;
+  optional string correo_electronico = 13;
+}
+
+// SesionMiembro describe la información de contacto organizacional del miembro.
+message SesionMiembro {
+  string id = 1;
+  optional string telefono_fijo = 2;
+  optional string telefono_movil = 3;
+  optional string correo_electronico = 4;
+}
+
+// SesionUsuario identifica al usuario autenticado.
+message SesionUsuario {
+  string id = 1;
+}
+
+// SesionPermiso describe un permiso asignado dentro de un rol.
+message SesionPermiso {
+  string id = 1;
+  string nombre = 2;
+  string slug = 3;
+}
+
+// SesionRol describe un rol y sus permisos otorgados.
+message SesionRol {
+  string id = 1;
+  string nombre = 2;
+  string slug = 3;
+  repeated SesionPermiso permisos = 4;
+}
+
+// SesionAplicacion agrupa los roles del usuario por aplicación.
+message SesionAplicacion {
+  string aplicacion_slug = 1;
+  repeated SesionRol roles = 2;
+}
+
+// CerrarSesionRequest contiene el token JWT de la sesión a revocar.
+message CerrarSesionRequest {
+  string token = 1;
+}
+
+// CerrarSesionResponse confirma el resultado del cierre de sesión.
+message CerrarSesionResponse {
+  bool exito = 1;
+  string mensaje = 2;
+}
+
+// CerrarTodasLasSesionesRequest contiene el token para revocar todas las sesiones del usuario.
+message CerrarTodasLasSesionesRequest {
+  string token = 1;
+}
+
+// CerrarTodasLasSesionesResponse confirma el cierre masivo de sesiones.
+message CerrarTodasLasSesionesResponse {
+  bool exito = 1;
+  string mensaje = 2;
+}
+
+// ObtenerPerfilRequest solicita la información del perfil con base en el token JWT.
+message ObtenerPerfilRequest {
+  string token = 1;
+}
+
+// ObtenerPerfilResponse retorna los datos de sesión activa del perfil consultado.
+message ObtenerPerfilResponse {
+  SesionData sesion = 1;
+}
+
+// ActualizarContrasenaRequest contiene la contraseña actual y la nueva.
+message ActualizarContrasenaRequest {
+  string token = 1;
+  string contrasena_actual = 2;
+  string nueva_contrasena = 3;
+}
+
+// ActualizarContrasenaResponse confirma la actualización de la contraseña.
+message ActualizarContrasenaResponse {
+  bool exito = 1;
+  string mensaje = 2;
+}
+
+// RegistrarUsuarioRequest contiene los datos para el autoregistro de un nuevo usuario.
+message RegistrarUsuarioRequest {
+  optional string run = 1;
+  optional string pasaporte = 2;
+  string nombre = 3;
+  optional string apellido_paterno = 4;
+  optional string apellido_materno = 5;
+  optional string genero = 6;
+  optional string fecha_nacimiento = 7;
+  optional string comuna_id = 8;
+  optional string direccion = 9;
+  optional string telefono_fijo = 10;
+  optional string telefono_movil = 11;
+  string correo_electronico = 12;
+  string contrasena = 13;
+}
+
+// RegistrarUsuarioResponse contiene el identificador del usuario creado.
+message RegistrarUsuarioResponse {
+  string usuario_id = 1;
+  string persona_id = 2;
+  string mensaje = 3;
+}
+
+// SolicitarRecuperacionContrasenaRequest contiene el correo para recuperación.
+message SolicitarRecuperacionContrasenaRequest {
+  string correo_electronico = 1;
+}
+
+// SolicitarRecuperacionContrasenaResponse confirma la solicitud de recuperación.
+message SolicitarRecuperacionContrasenaResponse {
+  bool exito = 1;
+  string mensaje = 2;
+}
+
+// RestablecerContrasenaRequest contiene el código de restablecimiento y la nueva contraseña.
+message RestablecerContrasenaRequest {
+  string token = 1;
+  string nueva_contrasena = 2;
+}
+
+// RestablecerContrasenaResponse confirma el restablecimiento de contraseña.
+message RestablecerContrasenaResponse {
+  bool exito = 1;
+  string mensaje = 2;
+}

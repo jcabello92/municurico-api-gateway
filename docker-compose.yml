@@ -1,0 +1,23 @@
+name: ${PROJECT_NAME}-api-gateway
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: ${PROJECT_NAME}-api-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./volume/app/src:/app
+    networks:
+      - template-network
+
+networks:
+  template-network:
+    external: true
+    name: ${PROJECT_NAME}-network
